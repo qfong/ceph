@@ -39,32 +39,16 @@ inline std::ostream& operator<<(std::ostream& out, _bad_endl_use_dendl_t) {
   return out;
 }
 
-struct doutprobe_t {
-  const char *	dop_module;	// module
-  const char *	dop_file;	// file name
-  const char *	dop_func;	// function name
-  int		dop_line;	// line no
-  volatile int	dop_state;	// state 0:off, 1:on
-};
-
 // generic macros
 #define dout_prefix *_dout
 
-#define	TOSTR(a)	#a
 #define dout_impl(cct, sub, v)						\
   do {									\
-  static doutprobe_t __dop = { TOSTR(sub), __FILE__, __func__, __LINE__, 0 }; \
-  static doutprobe_t *__dopptr						\
-  __attribute__((__section__("set_doutprobe"))) __attribute__((unused)) \
-    = &__dop;								\
-									\
-  int vv = v;								\
-  if (cct->_conf->subsys.should_gather(sub, v) ||			\
-      (__dop.dop_state != 0 && (vv = 0) == 0)) {			\
+  if (cct->_conf->subsys.should_gather(sub, v)) {			\
     if (0) {								\
       char __array[((v >= -1) && (v <= 200)) ? 0 : -1] __attribute__((unused)); \
     }									\
-    ceph::log::Entry *_dout_e = cct->_log->create_entry(vv, sub);	\
+    ceph::log::Entry *_dout_e = cct->_log->create_entry(v, sub);	\
     ostream _dout_os(&_dout_e->m_streambuf);				\
     CephContext *_dout_cct = cct;					\
     std::ostream* _dout = &_dout_os;
@@ -86,9 +70,5 @@ struct doutprobe_t {
   _ASSERT_H->_log->submit_entry(_dout_e);		\
     }						\
   } while (0)
-
-void	doutprobe_init(void);
-void	doutprobe_show(Formatter *f, const string& pattern);
-void	doutprobe_set(const string& pattern, const string& val);
 
 #endif

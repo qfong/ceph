@@ -1,0 +1,25 @@
+--- src/common/ceph_context.cc
++++ src/common/ceph_context.cc
+@@ -229,6 +229,22 @@
+ 	    f->dump_string(var.c_str(), buf);
+ 	}
+       }
++    } else if (command == "dout show") {
++      std::string var;
++      if (!cmd_getval(this, cmdmap, "var", var)) {
++	f->dump_string("error", "syntax error: 'dout show module:file:func:line'");
++      } else {
++	doutprobe_show(f, var);
++      }
++
++    } else if (command == "dout set") {
++      std::string var, val;
++      if (!cmd_getval(this, cmdmap, "var", var) ||
++	  !cmd_getval(this, cmdmap, "val", val)) {
++	f->dump_string("error", "syntax error: 'dout show module:file:func:line'");
++      } else {
++	doutprobe_set(var, val);
++      }
+     } else if (command == "log flush") {
+       _log->flush();
+     }
